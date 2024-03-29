@@ -30,6 +30,9 @@ namespace carpc::os::os_linux::socket {
    const char* const socket_type_to_string( const int type );
    int socket_type_from_string( const char* const type );
 
+   const char* const vsock_cid_to_string( const unsigned int cid );
+   unsigned int vsock_cid_from_string( const char* const cid );
+
    struct configuration
    {
       const std::string dbg_name( ) const;

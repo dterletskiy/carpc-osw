@@ -112,6 +112,30 @@ namespace carpc::os::os_linux::socket {
       return -1;
    }
 
+   const char* const vsock_cid_to_string( const unsigned int cid )
+   {
+      switch( cid )
+      {
+         case VMADDR_CID_ANY:          return "VMADDR_CID_ANY";
+         case VMADDR_CID_HYPERVISOR:   return "VMADDR_CID_HYPERVISOR";
+         case VMADDR_CID_LOCAL:        return "VMADDR_CID_LOCAL";
+         case VMADDR_CID_HOST:         return "VMADDR_CID_HOST";
+         default:                      return "VMADDR_CID_UNDEFINED";
+      }
+      return "VMADDR_CID_UNDEFINED";
+   }
+
+   unsigned int vsock_cid_from_string( const char* const cid )
+   {
+      if     ( 0 == std::strcmp( cid, "VMADDR_CID_ANY" )          ) return VMADDR_CID_ANY;
+      else if( 0 == std::strcmp( cid, "VMADDR_CID_HYPERVISOR" )   ) return VMADDR_CID_HYPERVISOR;
+      else if( 0 == std::strcmp( cid, "VMADDR_CID_LOCAL" )        ) return VMADDR_CID_LOCAL;
+      else if( 0 == std::strcmp( cid, "VMADDR_CID_HOST" )         ) return VMADDR_CID_HOST;
+      else                                                          return -2u;
+
+      return -2u;
+   }
+
 
 
    const std::string configuration::dbg_name( ) const
