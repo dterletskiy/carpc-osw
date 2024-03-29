@@ -50,14 +50,17 @@ namespace carpc::os::os_linux::socket {
    class socket_addr
    {
       public:
-         socket_addr( const int _domain, const char* const _address, const int _port );
+         socket_addr( const int _domain, const char* const _address = nullptr, const int _port = 0 );
+         socket_addr( const configuration& _config );
          socket_addr( const socket_addr& ) = delete;
          ~socket_addr( );
          socket_addr& operator=( const socket_addr& ) = delete;
+      private:
+         void init( const int _domain, const char* const _address, const int _port );
 
       public:
-         const sockaddr* const addr( ) const;
-         const socklen_t len( ) const;
+         sockaddr* addr( );
+         socklen_t& len( );
       private:
          sockaddr* m_addr = nullptr;
          socklen_t m_len = 0;
@@ -103,6 +106,11 @@ namespace carpc::os::os_linux::socket {
 
    void print( const sockaddr* _sa );
 
+   void print( const sockaddr_un* sa_un );
+   void print( const sockaddr_in* sa_in );
+   void print( const sockaddr_in6* sa_in6 );
+   void print( const sockaddr_vm* sa_vm );
+
    void info( const tSocket _socket, const char* _message = "socket" );
    void info( const tSocket _socket, configuration& _config );
 
@@ -133,12 +141,10 @@ namespace carpc::os::os_linux::socket {
 
    bool bind(
                           const tSocket _socket
-                        , const int _domain
-                        , const char* const _address
-                        , const int _port
+                        , socket_addr& sa
    );
 
-   bool bind( const tSocket _socket, const configuration _config );
+   bool bind( const tSocket _socket, const configuration& _config );
 
    bool connect(
                           const tSocket _socket
@@ -148,12 +154,10 @@ namespace carpc::os::os_linux::socket {
 
    bool connect(
                           const tSocket _socket
-                        , const int _domain
-                        , const char* const _address
-                        , const int _port
+                        , socket_addr& sa
    );
 
-   bool connect( const tSocket _socket, const configuration _config );
+   bool connect( const tSocket _socket, const configuration& _config );
 
    bool listen(
                           const tSocket _socket
@@ -210,6 +214,11 @@ namespace carpc::os::os_linux::socket {
                         , socklen_t* const _address_len = nullptr
    );
 
+   tSocket accept(
+                          const tSocket _socket
+                        , socket_addr* sa = nullptr
+   );
+
    bool select(
                           const tSocket _max_socket
                         , fd_set* const _fd_set_read
@@ -237,93 +246,3 @@ namespace carpc::os::os_linux {
    bool get_mac( const std::string& connection_name, std::string& connection_mac );
 
 } // namespace carpc::os::os_linux
-
-
-
-
-
-
-
-#if 0
-
-   struct addrinfo
-   {
-      int              ai_flags;
-      int              ai_family;
-      int              ai_socktype;
-      int              ai_protocol;
-      socklen_t        ai_addrlen;
-      struct sockaddr *ai_addr;
-      char            *ai_canonname;
-      struct addrinfo *ai_next;
-   };
-
-   struct sockaddr
-   {
-      sa_family_t sa_family;
-      char        sa_data[14];
-   };
-
-   #define UNIX_PATH_MAX   108
-   struct sockaddr_un
-   {
-      sa_family_t    sun_family;                   /* address family: AF_UNIX */
-      char           sun_path[ UNIX_PATH_MAX ];    /* path */
-   };
-
-   struct sockaddr_in
-   {
-      sa_family_t    sin_family; /* address family: AF_INET */
-      in_port_t      sin_port;   /* port in network byte order, e.g. htons(3490) */
-      struct in_addr sin_addr;   /* internet address */
-   };
-
-   /* Internet address. */
-   struct in_addr
-   {
-      uint32_t       s_addr;     /* address in network byte order, load with inet_aton() */
-   };
-
-   struct sockaddr_vm
-   {
-      sa_family_t    svm_family;    /* Address family: AF_VSOCK */
-      unsigned short svm_reserved1;
-      unsigned int   svm_port;      /* Port # in host byte order */
-      unsigned int   svm_cid;       /* Address in host byte order */
-      unsigned char  svm_zero[
-                          sizeof(struct sockaddr)
-                        - sizeof(sa_family_t)
-                        - sizeof(unsigned short)
-                        - sizeof(unsigned int)
-                        - sizeof(unsigned int)
-                     ];
-   };
-
-   struct ifreq {
-      char ifr_name[IFNAMSIZ]; /* Interface name */
-      union
-      {
-         struct sockaddr ifr_addr;
-         struct sockaddr ifr_dstaddr;
-         struct sockaddr ifr_broadaddr;
-         struct sockaddr ifr_netmask;
-         struct sockaddr ifr_hwaddr;
-         short           ifr_flags;
-         int             ifr_ifindex;
-         int             ifr_metric;
-         int             ifr_mtu;
-         struct ifmap    ifr_map;
-         char            ifr_slave[IFNAMSIZ];
-         char            ifr_newname[IFNAMSIZ];
-         char           *ifr_data;
-      };
-   };
-
-   struct in6_ifreq
-   {
-      struct in6_addr     ifr6_addr;
-      u32                 ifr6_prefixlen;
-      int                 ifr6_ifindex; /* Interface index */
-   };
-
-#endif

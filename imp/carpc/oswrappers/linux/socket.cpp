@@ -147,17 +147,33 @@ namespace carpc::os::os_linux::socket {
 
    socket_addr::socket_addr( const int _domain, const char* const _address, const int _port )
    {
+      init( _domain, _address, _port );
+   }
+
+   socket_addr::socket_addr( const configuration& _config )
+   {
+      init( _config.domain, _config.address.c_str( ), _config.port );
+   }
+
+   socket_addr::~socket_addr( )
+   {
+      free( m_addr );
+   }
+
+   void socket_addr::init( const int _domain, const char* const _address, const int _port )
+   {
       switch( _domain )
       {
          case AF_UNIX:
          {
-            // SYS_INF( "AF_UNIX" );
-
             struct sockaddr_un* addr_un = (sockaddr_un*)malloc( sizeof( sockaddr_un ) );
             memset( addr_un, 0, sizeof( sockaddr_un ) );
 
             addr_un->sun_family = _domain;
-            strncpy( addr_un->sun_path, _address, sizeof( addr_un->sun_path ) - 1 );
+            if( _address )
+            {
+               strncpy( addr_un->sun_path, _address, sizeof( addr_un->sun_path ) - 1 );
+            }
 
             m_addr = reinterpret_cast< sockaddr* >( addr_un );
             m_len = sizeof( addr_un->sun_family ) + strlen( addr_un->sun_path );
@@ -165,14 +181,15 @@ namespace carpc::os::os_linux::socket {
          }
          case AF_INET:
          {
-            // SYS_INF( "AF_INET" );
-
             struct sockaddr_in* addr_in = (sockaddr_in*)malloc( sizeof( sockaddr_in ) );
             memset( addr_in, 0, sizeof( sockaddr_in ) );
 
             addr_in->sin_family = _domain;
-            addr_in->sin_addr.s_addr = inet_addr( _address );
-            addr_in->sin_port = htons( _port );
+            if( _address && _port )
+            {
+               addr_in->sin_addr.s_addr = inet_addr( _address );
+               addr_in->sin_port = htons( _port );
+            }
 
             m_addr = reinterpret_cast< sockaddr* >( addr_in );
             m_len = sizeof( sockaddr_in );
@@ -180,20 +197,19 @@ namespace carpc::os::os_linux::socket {
          }
          case AF_INET6:
          {
-            // SYS_INF( "AF_INET6" );
-
             break;
          }
          case AF_VSOCK:
          {
-            // SYS_INF( "AF_VSOCK" );
-
             struct sockaddr_vm* addr_vm = (sockaddr_vm*)malloc( sizeof( sockaddr_vm ) );
             memset( addr_vm, 0, sizeof( sockaddr_vm ) );
 
             addr_vm->svm_family = _domain;
-            addr_vm->svm_cid = atoi( _address );
-            addr_vm->svm_port = _port;
+            if( _address && _port )
+            {
+               addr_vm->svm_cid = atoi( _address );
+               addr_vm->svm_port = _port;
+            }
 
             m_addr = reinterpret_cast< sockaddr* >( addr_vm );
             m_len = sizeof( addr_vm );
@@ -204,21 +220,14 @@ namespace carpc::os::os_linux::socket {
             break;
          }
       }
-
-      // print( m_addr );
    }
 
-   socket_addr::~socket_addr( )
-   {
-      free( m_addr );
-   }
-
-   const sockaddr* const socket_addr::addr( ) const
+   sockaddr* socket_addr::addr( )
    {
       return m_addr;
    }
 
-   const socklen_t socket_addr::len( ) const
+   socklen_t& socket_addr::len( )
    {
       return m_len;
    }
@@ -349,6 +358,9 @@ namespace carpc::os::os_linux::socket {
       {
          case AF_UNIX:
          {
+            print( (sockaddr_un*)sa );
+            break;
+
             domain = "AF_UNIX";
             const size_t maxlen = 256;
             c_address = (char*)malloc( maxlen );
@@ -359,6 +371,9 @@ namespace carpc::os::os_linux::socket {
 
          case AF_INET:
          {
+            print( (sockaddr_in*)sa );
+            break;
+
             domain = "AF_INET";
             const size_t maxlen = INET_ADDRSTRLEN;
             c_address = (char*)malloc( maxlen );
@@ -369,6 +384,9 @@ namespace carpc::os::os_linux::socket {
 
          case AF_INET6:
          {
+            print( (sockaddr_in6*)sa );
+            break;
+
             domain = "AF_INET6";
             const size_t maxlen = INET6_ADDRSTRLEN;
             c_address = (char*)malloc( maxlen );
@@ -379,6 +397,9 @@ namespace carpc::os::os_linux::socket {
 
          case AF_VSOCK:
          {
+            print( (sockaddr_vm*)sa );
+            break;
+
             domain = "AF_VSOCK";
             const size_t maxlen = 8;
             c_address = (char*)malloc( maxlen );
@@ -398,8 +419,41 @@ namespace carpc::os::os_linux::socket {
          }
       }
 
-      SYS_INF( "sockaddr: %p / domain: %s / address: %s", sa, domain.c_str( ), c_address );
+      // SYS_INF( "sockaddr: %p / domain: %s / address: %s", sa, domain.c_str( ), c_address );
       free( c_address );
+   }
+
+   void print( const sockaddr_un* sa_un )
+   {
+      SYS_VRB( "sockaddr_un: %p", sa_un );
+      if( not sa_un )
+         return;
+      SYS_VRB( "   sun_family: %d", sa_un->sun_family );
+      SYS_VRB( "   sun_path: %s", sa_un->sun_path );
+   }
+
+   void print( const sockaddr_in* sa_in )
+   {
+      SYS_VRB( "sockaddr_in: %p", sa_in );
+      if( not sa_in )
+         return;
+      SYS_VRB( "   sin_family: %d", sa_in->sin_family );
+      SYS_VRB( "   sin_port: %d", sa_in->sin_port );
+      SYS_VRB( "   sin_addr: %u", sa_in->sin_addr.s_addr );
+   }
+
+   void print( const sockaddr_in6* sa_in6 )
+   {
+      SYS_VRB( "sockaddr_in6: %p", sa_in6 );
+      if( not sa_in6 )
+         return;
+   }
+
+   void print( const sockaddr_vm* sa_vm )
+   {
+      SYS_VRB( "sockaddr_vm: %p", sa_vm );
+      if( not sa_vm )
+         return;
    }
 
    void info( const tSocket _socket, const char* _message )
@@ -504,15 +558,15 @@ namespace carpc::os::os_linux::socket {
       return true;
    }
 
-   bool bind( const tSocket _socket, const int _domain, const char* const _address, const int _port )
+   bool bind( const tSocket _socket, socket_addr& sa )
    {
-      socket_addr sa( _domain, _address, _port );
       return carpc::os::os_linux::socket::bind( _socket, sa.addr( ), sa.len( ) );
    }
 
-   bool bind( const tSocket _socket, const configuration _config )
+   bool bind( const tSocket _socket, const configuration& _config )
    {
-      return carpc::os::os_linux::socket::bind( _socket, _config.domain, _config.address.c_str( ), _config.port );
+      socket_addr sa( _config );
+      return carpc::os::os_linux::socket::bind( _socket, sa );
    }
 
    bool connect( const tSocket _socket, const sockaddr* _address, const socklen_t _address_len )
@@ -534,15 +588,15 @@ namespace carpc::os::os_linux::socket {
       return true;
    }
 
-   bool connect( const tSocket _socket, const int _domain, const char* const _address, const int _port )
+   bool connect( const tSocket _socket, socket_addr& sa )
    {
-      socket_addr sa( _domain, _address, _port );
       return carpc::os::os_linux::socket::connect( _socket, sa.addr( ), sa.len( ) );
    }
 
-   bool connect( const tSocket _socket, const configuration _config )
+   bool connect( const tSocket _socket, const configuration& _config )
    {
-      return carpc::os::os_linux::socket::connect( _socket, _config.domain, _config.address.c_str( ), _config.port );
+      socket_addr sa( _config );
+      return carpc::os::os_linux::socket::connect( _socket, sa );
    }
 
    bool listen( const tSocket _socket, const int _backlog )
@@ -663,6 +717,12 @@ namespace carpc::os::os_linux::socket {
       }
       SYS_VRB( "accept(%d): %d slave socket", _socket, slave_socket );
       return slave_socket;
+   }
+
+   tSocket accept( const tSocket _socket, socket_addr* sa )
+   {
+      return sa ? os_linux::socket::accept( _socket, sa->addr( ), &sa->len( ) )
+         : carpc::os::os_linux::socket::accept( _socket, nullptr, nullptr );
    }
 
    bool select( const tSocket _max_socket, fd_set* const _fd_set_read, fd_set* const _fd_set_write, fd_set* const _fd_set_except, timeval* const _timeout )
