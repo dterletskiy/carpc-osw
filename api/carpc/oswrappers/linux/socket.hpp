@@ -35,13 +35,19 @@ namespace carpc::os::os_linux::socket {
 
    struct configuration
    {
-      const std::string dbg_name( ) const;
-      void print( const std::string& _message = "" ) const;
+      configuration( ) = default;
+      explicit configuration( const tSocket _socket );
+      configuration( int dm, int tp, int pr, const std::string& a, int p );
+      configuration( const configuration& _config );
 
+      configuration& operator=( const configuration& _config );
       bool operator==( const configuration& ) const;
       bool operator!=( const configuration& ) const;
 
       bool eq( const configuration& ) const;
+
+      const std::string dbg_name( ) const;
+      void print( const std::string& _message = "" ) const;
 
       int         domain      = -1;
       int         type        = -1;
@@ -53,8 +59,9 @@ namespace carpc::os::os_linux::socket {
    class socket_addr
    {
       public:
-         socket_addr( const int _domain, const char* const _address = nullptr, const int _port = 0 );
-         socket_addr( const configuration& _config );
+         explicit socket_addr( const int _domain, const char* const _address, const int _port );
+         explicit socket_addr( const configuration& _config );
+         explicit socket_addr( const tSocket _socket );
          socket_addr( const socket_addr& ) = delete;
          ~socket_addr( );
          socket_addr& operator=( const socket_addr& ) = delete;
@@ -115,10 +122,7 @@ namespace carpc::os::os_linux::socket {
    void print( const sockaddr_vm* sa_vm );
 
    void info( const tSocket _socket, const char* _message = "socket" );
-   void info( const tSocket _socket, configuration& _config );
-
-   tSocket create_server( const configuration& _config );
-   tSocket create_clint( const configuration& _config );
+   void info( const tSocket _socket, configuration& _config ); // @TDA: must be removed besause of wrong implementation
 
    tSocket socket(
                           const int _domain = AF_UNIX
@@ -134,6 +138,16 @@ namespace carpc::os::os_linux::socket {
                         , int option_name
                         , const void *option_value
                         , socklen_t option_len
+   );
+
+
+
+   int getsockopt(
+                          int _socket
+                        , int level
+                        , int option_name
+                        , void* option_value
+                        , socklen_t* option_len
    );
 
    bool bind(
@@ -160,7 +174,10 @@ namespace carpc::os::os_linux::socket {
                         , socket_addr& sa
    );
 
-   bool connect( const tSocket _socket, const configuration& _config );
+   bool connect(
+                          const tSocket _socket
+                        , const configuration& _config
+   );
 
    bool listen(
                           const tSocket _socket
@@ -235,6 +252,10 @@ namespace carpc::os::os_linux::socket {
                         , fds& _fd
                         , timeval* const _timeout = nullptr
    );
+
+   bool getsockname( int _socket, sockaddr* const _address, socklen_t* const _address_len );
+
+   bool getsockname( const tSocket _socket, socket_addr* sa );
 
    bool shutdown( tSocket _socket, int _how = SHUT_RDWR );
 

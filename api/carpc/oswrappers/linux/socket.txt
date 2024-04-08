@@ -11,6 +11,7 @@
 
 
 
+# https://man7.org/linux/man-pages/man3/getaddrinfo.3.html
 struct addrinfo
 {
    int              ai_flags;
@@ -23,6 +24,26 @@ struct addrinfo
    struct addrinfo *ai_next;
 };
 
+# https://man7.org/linux/man-pages/man3/getifaddrs.3.html
+struct ifaddrs
+{
+   struct ifaddrs  *ifa_next;    /* Next item in list */
+   char            *ifa_name;    /* Name of interface */
+   unsigned int     ifa_flags;   /* Flags from SIOCGIFFLAGS */
+   struct sockaddr *ifa_addr;    /* Address of interface */
+   struct sockaddr *ifa_netmask; /* Netmask of interface */
+   union
+   {
+      struct sockaddr *ifu_broadaddr;
+      /* Broadcast address of interface */
+      struct sockaddr *ifu_dstaddr;
+      /* Point-to-point destination address */
+   } ifa_ifu;
+   #define              ifa_broadaddr ifa_ifu.ifu_broadaddr
+   #define              ifa_dstaddr   ifa_ifu.ifu_dstaddr
+   void            *ifa_data;    /* Address-specific data */
+};
+
 typedef unsigned short  sa_family_t;
 
 struct sockaddr
@@ -31,6 +52,7 @@ struct sockaddr
    char        sa_data[14];
 };
 
+# https://man7.org/linux/man-pages/man7/unix.7.html
 #define UNIX_PATH_MAX   108
 struct sockaddr_un
 {
@@ -40,6 +62,7 @@ struct sockaddr_un
 
 typedef uint16_t  in_port_t;
 
+# https://man7.org/linux/man-pages/man7/ip.7.html
 struct sockaddr_in
 {
    sa_family_t    sin_family; /* address family: AF_INET */
@@ -55,6 +78,23 @@ struct in_addr
    uint32_t       s_addr;     /* address in network byte order, load with inet_aton() */
 };
 
+# https://man7.org/linux/man-pages/man7/ipv6.7.html
+struct sockaddr_in6
+{
+   sa_family_t     sin6_family;   /* AF_INET6 */
+   in_port_t       sin6_port;     /* port number */
+   uint32_t        sin6_flowinfo; /* IPv6 flow information */
+   struct in6_addr sin6_addr;     /* IPv6 address */
+   uint32_t        sin6_scope_id; /* Scope ID (new in Linux 2.4) */
+};
+
+/* Internet address. */
+struct in6_addr
+{
+   unsigned char   s6_addr[16];   /* IPv6 address */
+};
+
+# https://man7.org/linux/man-pages/man7/vsock.7.html
 struct sockaddr_vm
 {
    sa_family_t    svm_family;    /* Address family: AF_VSOCK */
