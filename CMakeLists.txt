@@ -69,9 +69,9 @@ add_library(
       ${PROJECT_SOURCE_FILES}
    )
 
-target_link_libraries( ${PROJECT_TARGET_NAME} ${BASE_TARGET_NAME} )
+target_link_libraries( ${PROJECT_TARGET_NAME} PUBLIC ${BASE_TARGET_NAME} )
 if( ${OS_TARGET} EQUAL ${OS_LINUX} )
-   target_link_libraries( ${PROJECT_TARGET_NAME} pthread )
+   target_link_libraries( ${PROJECT_TARGET_NAME} PUBLIC pthread )
 endif( )
 
 add_custom_target( "${PROJECT_TARGET_NAME}_documentation" ALL
