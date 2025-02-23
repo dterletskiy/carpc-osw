@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include "carpc/oswrappers/Types.hpp"
 #include "carpc/oswrappers/linux/thread.hpp"
 
