@@ -1,6 +1,6 @@
 #pragma once
 
-#if !defined( CARPC_OS_LINUX )
+#if !defined( CARPC_BUILD_OS_LINUX )
    #error This file is for Linux builds only
 #endif
 

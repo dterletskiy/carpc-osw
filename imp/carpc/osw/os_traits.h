@@ -14,15 +14,15 @@ namespace carpc::osw::detail
 
 
 
-#if defined( CARPC_OS_LINUX )
+#if defined( CARPC_BUILD_OS_LINUX )
 
    #include "os_traits_linux.h"
 
-#elif defined( CARPC_OS_QNX )
+#elif defined( CARPC_BUILD_OS_QNX )
 
    #include "os_traits_qnx.h"
 
-#elif defined( CARPC_OS_RTOS )
+#elif defined( CARPC_BUILD_OS_RTOS )
 
    #include "os_traits_rtos.h"
 

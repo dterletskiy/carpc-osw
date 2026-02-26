@@ -1,6 +1,6 @@
 #include "os_qnx.h"
 
-#if !defined( CARPC_OS_QNX )
+#if !defined( CARPC_BUILD_OS_QNX )
    #error This file is for QNX builds only
 #endif
 

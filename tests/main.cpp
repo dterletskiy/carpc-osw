@@ -3,6 +3,8 @@
 
 
 #include "carpc/osw/osw.h"
+#include "carpc/osw/mutex.h"
+#include "carpc/osw/thread.h"
 
 namespace test::osw {
 
@@ -20,6 +22,19 @@ namespace test::osw {
       CARPC_TRACE_LOG_TRACE( "wall_time_ns: %llu",
             carpc::osw::wall_time_ns( )
          );
+
+      carpc::osw::Mutex mutex;
+      mutex.try_lock( );
+      mutex.unlock( );
+
+      auto ep = [ ]( )
+      {
+         for( size_t i = 0; i < 1000; ++i )
+            CARPC_TRACE_LOG_TRACE( "%zu", i );
+      };
+      carpc::osw::Thread thread( ep );
+      thread.run( );
+      thread.join( );
 
       CARPC_TRACE_LOG_TRACE( "[TName] All tests passed." );
    }

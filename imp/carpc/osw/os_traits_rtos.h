@@ -1,6 +1,6 @@
 #pragma once
 
-#if !defined( CARPC_OS_RTOS )
+#if !defined( CARPC_BUILD_OS_RTOS )
    #error This file is for RTOS builds only
 #endif
 
